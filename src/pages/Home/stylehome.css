@@ -1,0 +1,15 @@
+/* Toàn bộ thanh cuộn */
+::-webkit-scrollbar {
+    width: 8px; /* Độ rộng của thanh cuộn */
+}
+
+/* Phần nền (track) của thanh cuộn */
+::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Màu nền của thanh cuộn */
+}
+
+/* Phần thumb của thanh cuộn */
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2); /* Màu của phần thumb */
+    border-radius: 10px; /* Làm tròn góc */
+}

@@ -1,0 +1,26 @@
+ul.ant-card-actions{
+    background-color: #F7F7F7 !important;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.2);
+    pointer-events: none !important;
+}
+.text-action{
+    color: #666666 !important;
+}
+.text-description{
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #f05123;
+}
+.text-title {
+    color: #292929;
+    font-size: 1.6rem;
+    line-height: 1.4;
+    overflow: hidden;
+    word-wrap: break-word;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+}
+.text-author {
+    color: #292929;
+    font-weight: 600;
+}

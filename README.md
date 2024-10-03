@@ -44,3 +44,12 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+
+## cấu hình sửa webpack với custom-cra
+
+## cấu hình 
+
+## tạo proxy trong package json
+### "source-map-loader": "^5.0.0" tắt báo lỗi cho thư viện này
+
+## npm install react-player hỗ trợ phát video theo link youtube

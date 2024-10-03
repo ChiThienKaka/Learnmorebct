@@ -1,5 +1,11 @@
 {
   "compilerOptions": {
+    //them config trong du an tu dong dien rut ngan duong dan
+    "baseUrl": ".",
+      "paths": {
+        "~/*": ["src/*"]
+      },
+      //--------------------------------------------------------
     "target": "es5",
     "lib": [
       "dom",
