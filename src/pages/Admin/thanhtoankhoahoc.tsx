@@ -1,0 +1,272 @@
+import { Avatar, Button, Card, Col, Collapse, Divider, Flex, Form, Input, InputNumber, Modal, Row, Select, Space, Table, Tag } from "antd"
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { API_URL, formatCurrencyVND, formatToVietnamTime, vietQR } from "~/constants/constant";
+import { v4 as uuidv4 } from "uuid";
+import { CaretRightOutlined, CheckOutlined, CloseOutlined, UserOutlined } from "@ant-design/icons";
+import { useForm } from "antd/es/form/Form";
+const ThanhtoanKhoahoc = () => {
+    const [month, setMonth] = useState('11');
+    const [year, setYear] = useState('2024');
+    const [thanhtoangiangvien, setThanhtoangiangvien] = useState('0');
+    const [dataAll, setDataAll] = useState<any>([]);//lấy danh sách toàn bộ khóa học chưa được thanh toán
+    const [bank, setBank] = useState<any>([]);
+    const [isopenThanhtoanGv, setIsOpenThanhtoanGv] = useState(false);
+    const [formThanhtoangv] = useForm();
+    //Tạo bảng thanh toán giảng viên mới 
+    const handlecreatepaymentGV = async (values: any) => {
+        try{
+            const res = await axios.post(`${API_URL}paymentgiangvien/create`,{
+                year: year, 
+                month: month,
+                idgv: values['idgv'], 
+                courseid: values['courseid'], 
+                hocvienmoi: values['hocvienmoi'], 
+                amount: values['amount'], 
+                magiaodich: values['magiaodich'], 
+                method: values['method'], 
+                kieuthanhtoan: values['kieuthanhtoan'],
+            });
+            console.log(res.data);
+            setIsOpenThanhtoanGv(false);
+            formThanhtoangv.resetFields();
+            getPaymentThanhtoan();
+        
+        }catch(err){console.log(err);}
+    }
+    const getBank = async () => {
+        // list banks are supported create QR code by Vietqr
+        vietQR.getBanks().then((banks:any)=>{
+            setBank(banks.data);
+        })
+    }
+    const getPaymentThanhtoan = async () => {
+        const trangthai = thanhtoangiangvien === '0' ? false : true;
+        console.log(year, month, trangthai);
+        try{
+            const res = await axios.post(`${API_URL}payment/paymenttheothang`,{
+                year: year,
+                month: month,
+                thanhtoangiangvien: trangthai,
+            });
+            setDataAll(res.data);
+            console.log(res.data);
+        }catch(err){console.log(err);}
+    }
+    useEffect(()=>{
+        getPaymentThanhtoan();
+        getBank();
+    },[]);
+    useEffect(()=>{
+        getPaymentThanhtoan();
+    },[year,month, thanhtoangiangvien])
+    return (
+        <>
+            <Card title="Thanh toán khóa học theo từng tháng" extra={<Button>Quay lại</Button>}>
+            
+                <Flex justify="space-around">
+                    <Space size={"large"} wrap direction="horizontal">
+                    <span style={{fontWeight:"bold"}}>Chọn tháng: </span>
+                    <Select 
+                            onChange={(value)=>{console.log(value);setMonth(value)}}
+                            value={month}
+                            defaultValue="11"
+                            style={{ width: 120 }}
+                            // onChange={handleChange}
+                            options={[
+                                { value: '1', label: 'Tháng 1' },
+                                { value: '2', label: 'Tháng 2' },
+                                { value: '3', label: 'Tháng 3' },
+                                { value: '4', label: 'Tháng 4' },
+                                { value: '5', label: 'Tháng 5' },
+                                { value: '6', label: 'Tháng 6' },
+                                { value: '7', label: 'Tháng 7' },
+                                { value: '8', label: 'Tháng 8' },
+                                { value: '9', label: 'Tháng 9' },
+                                { value: '10', label: 'Tháng 10' },
+                                { value: '11', label: 'Tháng 11' },
+                                { value: '12', label: 'Tháng 12' },
+                            ]}/>
+                        <Select
+                            value={year}
+                            defaultValue="2024"
+                            onChange={(value)=>{console.log(value); setYear(value)}}
+                            style={{ width: 120 }}
+                            // onChange={handleChange}
+                            options={[
+                                { value: '2024', label: 'Năm 2024' },
+                                { value: '2025', label: 'Năm 2025' },
+                                { value: '2026', label: 'Năm 2026' },
+                                { value: '2027', label: 'Năm 2027' },
+                                { value: '2028', label: 'Năm 2028' },
+                                { value: '2029', label: 'Năm 2029' },
+                                { value: '2030', label: 'Năm 2030' },
+                                { value: '2031', label: 'Năm 2031' },
+                                { value: '2032', label: 'Năm 2032' },
+                                { value: '2033', label: 'Năm 2033' },
+                                { value: '2034', label: 'Năm 2034' },
+                                { value: '2035', label: 'Năm 2035' },
+                            ]}/>
+                    </Space>
+                    <Space wrap direction="horizontal" size={"large"}>
+                        <span style={{fontWeight:"bold"}}>Trạng thái thanh toán: </span>
+                        <Select
+                            value={thanhtoangiangvien}
+                            onChange={(value)=>{setThanhtoangiangvien(value)}}
+                            defaultValue="0"
+                            style={{ width: 200 }}
+                            // onChange={handleChange}
+                            options={[
+                                {value: '0', label: 'Chưa thanh toán'},
+                                {value: '1', label: 'Đã thanh toán'},
+                            ]}/>
+                    </Space>
+                </Flex>
+                <Divider />
+                <Flex vertical>
+                    {
+                        dataAll.length !==0 && (
+                            <Card title={<Row>
+                                <Col span={6}>Khóa học</Col>
+                                <Col span={6}>Giảng viên</Col>
+                                <Col span={8}>Ngân hàng</Col>
+                                <Col span={4}>Tổng tiền</Col>
+                            </Row>}>{
+                            dataAll.map((item:any)=>{
+                                return (<Collapse expandIconPosition="end" expandIcon={({ isActive }) => <CaretRightOutlined style={{fontSize:20, color:"#26743B"}} rotate={isActive ? 90 : 0} />}
+                                    key={`${uuidv4()}`} items={[
+                                    {key:`${item.course.id}`, label:<>
+                                        <Row>
+                                            <Col span={6}>
+                                            <Flex gap={8} align="center" style={{width:'100%'}}>
+                                                <Flex>
+                                                    <img alt="thumbnail" width={120} height={67} style={{objectFit:"cover", borderRadius:8}}
+                                                    src={`${API_URL}course/thumbail/${item.course.idGV}/${item.course.thumbnail}`} />
+                                                </Flex>
+                                                <Flex vertical gap={1}>
+                                                    <div><span style={{fontWeight:"bold"}}>{item.course.title}</span></div>
+                                                    {/* <div><span>{item.course.description}</span></div> */}
+                                                    <span>{`Tỉ lệ: ${item.course.tileanchia}`}</span>
+                                                    <div><span style={{fontWeight:'bold', color:'red'}}>{formatCurrencyVND(item.course.price)}</span>
+                                                    <span>{item.course.status?<Tag style={{marginLeft:5}} color="green">Đã duyệt</Tag>:<Tag style={{marginLeft:5}} color="red">Chưa duyệt</Tag>}</span></div>
+                                                </Flex>     
+                                            </Flex>
+                                            </Col>
+                                            <Col span={6}>
+                                            <Flex gap={8} align="center" style={{width:'100%'}}>
+                                                <Flex>
+                                                    <img alt="thumbail" width={50} height={50} style={{objectFit:"cover", borderRadius:100}}
+                                                    src={`${API_URL}admin/images/${item.user.email}`} />
+                                                </Flex>
+                                                <Flex vertical gap={1}>
+                                                    <div><span style={{fontWeight:"bold"}}>{item.user.name}</span></div>
+                                                    <div><span>{item.user.email}</span></div>
+                                                    <div><span style={{fontSize:10}}>Ngày tạo khóa học: {formatToVietnamTime(item.course.createdAt)}</span></div>
+                                                </Flex>     
+                                            </Flex></Col>
+                                            <Col span={8}>
+                                                <Space direction="vertical" style={{fontSize:12}} >
+                                                    <span style={{fontSize:15}}>{`STK: ${item.user.sotaikhoan}`}</span>
+                                                    <span>{bank&&bank.find((bank:any)=>bank.code===item.user.nganhang)?.name}</span>
+                                                    <Space wrap>
+                                                        <span>{bank&&bank.find((bank:any)=>bank.code===item.user.nganhang)?.shortName}</span>
+                                                        <span>{bank && <Avatar alt="hhiih" shape="square" style={{width:80, height:30}} src={bank.find((bank:any)=>bank.code===item.user.nganhang)?.logo} />}</span>
+                                                    </Space>
+                                                </Space>
+                                            </Col>
+                                            <Col span={4}>
+                                              <Space direction="vertical">
+                                                    <span style={{fontWeight:"bold"}}>Học viên mới: <span style={{color:"red", fontWeight:"bold"}}>{`x${item.thanhvienmoi}`}</span></span>
+                                                    <span style={{fontWeight:"bold"}}>Tổng giá: <span style={{color:"red", fontWeight:"bold"}}>{`${formatCurrencyVND(item.tongtien)}`}</span></span>
+                                                    {thanhtoangiangvien==='0' ? <Button onClick={(e)=>{e.stopPropagation();setIsOpenThanhtoanGv(true);
+                                                        formThanhtoangv.setFieldsValue({
+                                                            courseid: item.course.id,
+                                                            idgv: item.course.idGV,
+                                                            hocvienmoi: item.thanhvienmoi,
+                                                            amount: item.tongtien
+                                                        })
+                                                    }} type="primary" style={{backgroundColor:"red", borderRadius:20}}>Thanh toán</Button>:
+                                                    <Tag color="green">Đã thanh toán</Tag>}
+                                              </Space>
+                                            </Col>
+                                        </Row>
+                                    </>, children: <>
+                                        <Table columns={[
+                                            {title:'Avatar', key: 'user', dataIndex:'user', 
+                                                render: (text)=>{
+                                                    return text.avatar !==null ?<Avatar src={`${API_URL}auth/getavatarnd/${text.id}/${text.avatar}`} /> : <Avatar icon={<UserOutlined />} />
+                                                }
+                                            },
+                                            {title:'Email', key: 'user', dataIndex:'user', 
+                                                render: (text)=>{
+                                                    return <span>{text.email}</span>
+                                                }
+                                            },
+                                            {title:'Mã giao dịch', key: 'transactionid', dataIndex:'transactionid', 
+                                                render: (text)=>{
+                                                    return <span>{text}</span>
+                                                }
+                                            },
+                                            {title:'Số tiền', key: 'amount', dataIndex:'amount', 
+                                                render: (text)=>{
+                                                    return <span>{formatCurrencyVND(text)}</span>
+                                                }
+                                            },
+                                            {title:'Phương thức', key: 'paymentmethod', dataIndex:'paymentmethod', 
+                                                render: (text)=>{
+                                                    return <span>{text==='qr'?'Mã QR':'chưa xác định'}</span>
+                                                }
+                                            },
+                                            {title:'Thời gian thanh toán', key: 'paymentdate', dataIndex:'paymentdate', 
+                                                render: (text)=>{
+                                                    return <span>{formatToVietnamTime(text)}</span>
+                                                }
+                                            },
+                                            {title:'Giải ngân', key: 'thanhtoangiangvien', dataIndex:'thanhtoangiangvien', 
+                                                render: (text)=>{
+                                                    return text?<CheckOutlined style={{color:"green"}} />:<CloseOutlined style={{color:"red"}} />
+                                                },align:'center'
+                                            },
+                                        ]}
+                                        pagination={false} dataSource={item.payment} />
+                                    </>}
+                                ]}/>)
+                            })
+                            }</Card>
+                        )
+                    }
+                </Flex>
+            </Card>
+            <Modal title={'Cập nhật lịch sử thanh toán'} footer={null} open={isopenThanhtoanGv} onCancel={()=>{setIsOpenThanhtoanGv(false)}}>
+                <Form form={formThanhtoangv} onFinish={handlecreatepaymentGV}>
+                    <Form.Item label="Nhập mã khóa học" name="courseid" rules={[{ required: true, message: 'Vui lòng nhập mã khóa học!' }]}>
+                        <InputNumber placeholder="Nhập tiêu đề bài kiểm tra" />
+                    </Form.Item>
+                    <Form.Item label="Nhập mã giảng viên" name="idgv" rules={[{ required: true, message: 'Vui lòng nhập mã giảng viên!' }]}>
+                        <InputNumber placeholder="Nhập mã giảng viên" />
+                    </Form.Item>
+                    <Form.Item label="Nhập mã giao dịch" name="magiaodich" rules={[{ required: true, message: 'Vui lòng nhập mã giao dịch!' }]}>
+                        <Input placeholder="Nhập mã giao dịch" />
+                    </Form.Item>
+                    <Form.Item label="Nhập phương thức thanh toán" name="method" rules={[{ required: true, message: 'Vui lòng nhập phương thức thanh toán!' }]}>
+                        <Input placeholder="Nhập phương thức thanh toán" />
+                    </Form.Item>
+                    <Form.Item label="Nhập kiểu thanh toán" name="kieuthanhtoan" rules={[{ required: true, message: 'Vui lòng nhập kiểu thanh toán!' }]}>
+                        <Input placeholder="Nhập phương thức thanh toán" />
+                    </Form.Item>
+                    <Form.Item label="Số lượng học viên mới" name="hocvienmoi" rules={[{ required: true, message: 'Vui lòng nhập số lượng học viên mới!' }]}>
+                        <InputNumber placeholder="Nhập số lượng học viên mới" />
+                    </Form.Item>
+                    <Form.Item label="Tổng số tiền" name="amount" rules={[{ required: true, message: 'Vui lòng nhập tổng số tiền!' }]}>
+                        <InputNumber style={{width:"100%"}} placeholder="Nhập tổng số tiền" />
+                    </Form.Item>
+                    <Form.Item style={{display:"flex", justifyContent:"center"}}>
+                        <Button  type="primary" style={{backgroundColor:"red", borderRadius:20}} htmlType="submit">Thanh toán</Button>
+                    </Form.Item>
+                </Form>
+            </Modal>
+        </>
+    )
+}
+
+export default ThanhtoanKhoahoc

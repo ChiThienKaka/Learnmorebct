@@ -5,9 +5,14 @@ import DefaultLayout from './components/Layout/DefaultLayout';
 import AdminLayout from './components/Layout/AdminLayout';
 import ProtectedRoute from './routes/protectedRoute';
 import AdminGiangVien from './pages/Admin/giangvien';
-import {CourseXetDuyet, ChitietCourse} from './pages/Admin/admin'
+import {CourseXetDuyet, ChitietCourse, ThanhtoanKhoahoc, LichsuThanhtoanad, ChitietGiangvien, DanhsachNguoidung,
+  ThongkeNguoidung, ThongkeKhoahoc, ThongkeDoanhthu
+} from './pages/Admin/admin'
 import GiangVienLayout from './components/Layout/GiangvienLayout';
-import {CreateGV, CreateCourseForm, CreateLectureList, ListCourse, ListLesson} from '~/pages/GiangVien/giangvien'
+import { HoctapCourse } from './pages/Home/';
+import {CreateGV, CreateCourseForm, CreateLectureList, ListCourse, ListLesson, MultiTest, QuanlyCourse, KhoahocTien, LichsuThanhtoan,
+  ThongkeNguoiddungGV, ThongkeDoanhthuGv
+} from '~/pages/GiangVien/giangvien'
 function App() {
   return (
     <Router>
@@ -34,6 +39,12 @@ function App() {
                     <Route path="createGV2" element={<CreateLectureList />} />
                     <Route path="listcourse" element={<ListCourse />} />
                     <Route path="listlesson" element={<ListLesson />} />
+                    <Route path="kiemtra" element={<MultiTest />} />
+                    <Route path="quanlycourse" element={<QuanlyCourse />} />
+                    <Route path='khoahoctien' element={<KhoahocTien />} />
+                    <Route path='lichsuthanhtoan' element={<LichsuThanhtoan/>} />
+                    <Route path='thongkenguoidunggv' element={<ThongkeNguoiddungGV/>} />
+                    <Route path='thongkedoanhthugv' element={<ThongkeDoanhthuGv />} />
                 </Route>
                
                 {/* tạo riêng các đượng dẫn của admin */}
@@ -42,7 +53,18 @@ function App() {
                   <Route path="giangvienad" element={<AdminGiangVien />} />
                   <Route path="courseadxd" element={<CourseXetDuyet />} />
                   <Route path="chitietcoursead" element={<ChitietCourse />} />
+                  <Route path='thanhtoankhoahoc' element={<ThanhtoanKhoahoc />} />
+                  <Route path='lichsuthanhtoanad' element={<LichsuThanhtoanad />} />
+                  <Route path='danhsachgiangvien' element={<ChitietGiangvien/>} />
+                  <Route path='danhsachnguoidung' element={<DanhsachNguoidung/>} />
+                  <Route path='thongkenguoidung' element={<ThongkeNguoidung />} />
+                  <Route path='thongkekhoahoc' element={<ThongkeKhoahoc />} />
+                  <Route path='thongkedoanhthu' element={<ThongkeDoanhthu />} />
                 </Route>
+
+                <Route path='hoctap' element={<ProtectedRoute requiredRole='nguoidung'>
+                      <HoctapCourse />
+                </ProtectedRoute>}/>
             </Routes>
         </div>
     </Router>

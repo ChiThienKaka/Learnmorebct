@@ -24,7 +24,7 @@ const CreateCourseForm = () => {
         placement: 'top',
         duration:2.5
     })
-}
+  }
  // lấy toàn bộ dữ liệu trong danh mục
   const getDataDanhmuc = async () => {
   const data = await axios.get(`${API_URL}categori/danhmuc`);

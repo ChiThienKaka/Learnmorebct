@@ -33,10 +33,10 @@ function Register() {
             if(response.status === 200) {
                 // await createUserWithEmailAndPassword(auth, values['email'], values['password']);
                 //reset lại toàn bộ Fields
+                setIsModalLoginEmail(false);
                 formND.resetFields();
                 console.log("Đăng ký người dùng thành công");
                 //đóng modal lại
-                setIsModalLoginEmail(true);
             }
         }catch(e){
             formND.setFields([{
@@ -72,6 +72,9 @@ function Register() {
 
                 //reset lại toàn bộ Fields
                 formGV.resetFields();
+                //reset
+                setFileListImage([]);//ảnh gv
+                setFileList([]);//chứng chỉ
                 //hiện thị thông báo thành công
                 openNotification();
                 setIsModalOpen(false);

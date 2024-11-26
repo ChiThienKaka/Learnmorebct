@@ -1,172 +1,74 @@
 
-import { Button, Col, DatePicker, Drawer, Form, Input, Row, Select, Space, Upload, UploadFile } from "antd";
+import { UploadOutlined } from "@ant-design/icons";
+import { Button, Col, DatePicker, Drawer, Flex, Form, Input, Row, Select, Space, Upload, UploadFile } from "antd";
 import ImgCrop from "antd-img-crop";
 import {useState } from "react";
-
-const AccountUpgrade = ()=> {
+import { API_URL } from "~/constants/constant";
+import images from "~/assets/images";
+import axios from "axios";
+import { useForm } from "antd/es/form/Form";
+interface Prop{
+  usercurrent: {id: string; email: string; role: string; name?: string; avatar?: string}
+}
+const AccountUpgrade = (prop: Prop)=> {
+  const [formUpdateND] = useForm();
+  const {usercurrent} = prop;
+  const [fileListImage, setFileListImage] = useState<UploadFile[]>();
     // tắt mở form 
     const [open, setOpen] = useState(false);
-    //Xử lý ảnh đại diện
-    const [fileList, setFileList] = useState<UploadFile[]>([
-        {
-          uid: '-1',
-          name: 'image.png',
-          status: 'done',
-          url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-          crossOrigin:'anonymous'
-        },
-      ]);
-      const onChange = ({ fileList: newFileList}:{fileList: UploadFile<any>[]}) => {
-        console.log(fileList)
-        setFileList(newFileList);
-      };
-      const onPreview = async (file:any) => {
-        let src = file.url;
-        if (!src) {
-          src = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file.originFileObj);
-            reader.onload = () => resolve(reader.result);
-          });
+    //Xử lý sự kiện update ảnh đại diện
+    const handleupdatenguoidung = async (values: any) => {
+        const formData = new FormData();
+        formData.append('name', values['name']);
+        formData.append('userid', usercurrent.id);
+        console.log(usercurrent.id);
+        if(values['image']){
+            values.image.fileList.forEach((file:any)=>{
+                formData.append("image", file.originFileObj)
+            });
         }
-        const image = new Image();
-        image.src = src;
-        const imgWindow = window.open(src);
-        imgWindow?.document.write(image.outerHTML);
-      };
-    //kêt thúc xử lý ảnh đại diện
-    const formItemLayout = {
-        labelCol: {
-          xs: {
-            span: 24,
-          },
-          sm: {
-            span: 8,
-          },
-        },
-        wrapperCol: {
-          xs: {
-            span: 24,
-          },
-          sm: {
-            span: 16,
-          },
-        },
-      };
+        // cập nhật dữ liệu
+        try{
+          const res = await axios.post(`${API_URL}auth/updateusernd`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+          console.log(res.data);
+        }catch(err){console.log(err);}
+        setFileListImage([]);
+        setOpen(false);
+    }
     return (
         <>
             <Button style={{color:"#666666", justifyContent:"start"}} type="link" onClick={()=>setOpen(true)}>
-                Nâng cấp
+                Thông tin cá nhân
             </Button>
-            <Drawer
-            title="Đăng ký tài khoản Giảng viên"
-            width={720}
-            onClose={()=>setOpen(false)}
-            open={open}
-            styles={{
-                body: {paddingBottom: 80,},
-            }}
-            extra={
-                <Space>
-                    <Button onClick={()=>setOpen(false)}>Hủy</Button>
-                    <Button onClick={()=>setOpen(false)} type="primary">Gửi</Button>
-                </Space>}>
-
+            <Drawer destroyOnClose title="Thông tin cá nhân" onClose={()=>setOpen(false)} open={open}
+            styles={{body: {paddingBottom: 80,},}}>
             {/* Form */}
-                <Form {...formItemLayout} style={{maxWidth:800}} scrollToFirstError>
-                    {/* Email */}
-                    <Form.Item
-                        name="email"
-                        label="E-mail"
-                        rules={[
-                        {
-                            type: 'email',
-                            message: 'Thông tin đầu vào không hợp lệ E-mail!',
-                        },
-                        {
-                            required: true,
-                            message: 'Vui lòng nhập E-mail của bạn!',
-                        },
-                        ]}>
-                        <Input />
-                    </Form.Item>
-                    {/* Họ và tên */}
-                    <Form.Item
-                    name="hovaten"
-                    label="Họ và tên"
-                    rules={[
+                <Flex justify="center">
                     {
-                        required: true,
-                        message: 'Vui lòng nhập họ tên của bạn!',
-                        whitespace: true,
-                    },
-                    ]}>
-                    <Input />
+                      usercurrent.avatar ? <img height={100} alt="hihi" width={100} style={{borderRadius:100}} src={`${API_URL}auth/getavatarnd/${usercurrent.id}/${usercurrent.avatar}`} /> :
+                      <img height={100} alt="hihi" width={100} style={{borderRadius:100}} src={images.userrong}/>
+                    }
+                </Flex>
+                <Form form={formUpdateND} onFinish={handleupdatenguoidung} initialValues={{name: usercurrent.name??usercurrent.email.split('@')[0], email: usercurrent.email}} style={{marginTop:20}} scrollToFirstError>
+                    <Form.Item name={'email'} label={"Email"} rules={[{required: false, message: 'Vui lòng nhập email của bạn'}]}>
+                          <Input disabled></Input>
                     </Form.Item>
-                    {/* Số điện thoại  */}
-                    <Form.Item
-                    name="sodienthoai"
-                    label="Số điện thoại"
-                    rules={[
-                    {
-                        required: true,
-                        message: 'Vui lòng nhập số diện thoại của bạn!',
-                        whitespace: true,
-                    },
-                    ]}>
-                    <Input maxLength={10}/>
+                    <Form.Item name={'name'} label={"Họ và tên"} rules={[{required: true, message: 'Vui lòng nhập họ tên của bạn' }]}>
+                          <Input></Input>
                     </Form.Item>
-                {/* Giới tính */}
-                <Form.Item
-                    name="gioitinh"
-                    label="Giới tính"
-                    rules={[
-                    {
-                        required: true,
-                        message: 'Vui lòng chọn giới tính của bạn!',
-                    },
-                    ]}
-                >
-                    <Select placeholder="Chọn giới tính">
-                        <Select.Option value="Nam">Nam</Select.Option>
-                        <Select.Option value="Nữ">Nữ</Select.Option>
-                        <Select.Option value="Khác">Khác</Select.Option>
-                    </Select>
-                </Form.Item>
-                {/* Địa chỉ */}
-                <Form.Item
-                name="diachi"
-                label="Địa chỉ"
-                rules={[
-                {
-                    required: true,
-                    message: 'Vui lòng nhập địa chỉ của bạn!',
-                },
-                ]}>
-                    <Input.TextArea rows={3} showCount maxLength={100} />
-                </Form.Item>
-                {/* Ảnh đại diện */}
-                <Form.Item
-                 name="anhdaidien"
-                 label="Ảnh đại diện">
-                    <ImgCrop rotationSlider>
-                        <Upload 
-                            action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload"
-                            listType="picture-card"
-                            fileList={fileList}
-                            onChange={onChange}
-                            onPreview={onPreview}
-                        >
-                            {fileList.length < 5 && '+ Upload'}
-                        </Upload>
-                        </ImgCrop>
-                </Form.Item>
-                {/* Tải các file bằng cấp và chứng chỉ  */}
-                <Form.Item
-                 name="bangcapvachungchi"
-                 label="Bằng cấp và chứng chỉ: ">
-                    
-                </Form.Item>
+                    {/* Hình ảnh khóa học */}
+                    <span >Chọn hình đại diện mới:</span>
+                    <Form.Item style={{marginTop:10}} name="image" rules={[{required: false, message: 'Vui lòng chọn hình đại diện của bạn' }]}>
+                      <Upload showUploadList fileList={fileListImage} accept=".png,.jpg,.jpeg" multiple={false} beforeUpload={()=>false}
+                      maxCount={1} listType="picture-card" onChange={({fileList})=>{setFileListImage(fileList)}}>
+                        <Button type="text" icon={<UploadOutlined />}></Button>
+                      </Upload>
+                    </Form.Item>
+                    <Form.Item style={{display:"flex", justifyContent:"center"}}><Button style={{backgroundColor:"#47d36b"}} type="primary" htmlType="submit">Lưu</Button></Form.Item>
                 </Form>
             </Drawer>
         </>

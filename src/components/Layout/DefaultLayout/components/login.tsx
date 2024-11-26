@@ -2,7 +2,7 @@ import { UserOutlined } from "@ant-design/icons";
 import { Button, Checkbox, Flex, Form, Input, Modal } from "antd";
 import { useForm } from "antd/es/form/Form";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import images from "~/assets/images";
 import {API_URL} from "~/constants/constant"
 import { jwtDecode } from "jwt-decode";
@@ -33,9 +33,9 @@ function Login(props: Props) {
             const token = localStorage.getItem('token');
             if(token){
                 // Giải mã token lấy dữ liệu payload user trả về
-                const decode : {id:number, email: string, role: string} = jwtDecode(token);
-                const {id, email, role } = decode;
-                dispatch(login({id, email, role}));
+                const decode : {id:number, email: string, role: string, name?:string, avatar?:string} = jwtDecode(token);
+                const {id, email, role, name, avatar } = decode;
+                dispatch(login({id, email, role, name, avatar}));
 
                 //chuyển chang nếu roll đúng theo vai trò
                 if(role ==='giangvien'){
@@ -48,6 +48,7 @@ function Login(props: Props) {
                 if(role === 'admin'){
                     navigate('admin')
                 }
+                setIsModalLoginEmail(false);
             }
         }catch(e){
             formLoginEmail.setFields([{

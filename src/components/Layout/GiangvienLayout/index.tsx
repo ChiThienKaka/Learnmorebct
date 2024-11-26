@@ -1,8 +1,8 @@
-import { HomeOutlined, ReadOutlined } from "@ant-design/icons";
+import { BarChartOutlined, HomeOutlined, ReadOutlined } from "@ant-design/icons";
 import { Flex, Layout, Menu } from "antd";
 import { Content, Footer, Header } from "antd/es/layout/layout";
 import Sider from "antd/es/layout/Sider";
-import { useState } from "react";
+import { Children, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import images from "~/assets/images";
@@ -29,19 +29,43 @@ function GiangVienLayout() {
         },{
             key:'2',
             icon: <ReadOutlined />,
-            label: 'Bài viết'
+            label: 'Quản lý',
+            children: [
+                {
+                    key: '20',
+                    label: 'Khóa học'
+                }
+            ]
         },
         {
             key:'3',
             icon: <ReadOutlined />,
-            label: 'test',
+            label: 'Doanh thu',
             children: [
                 {
                     key: '30',
-                    label: 'Test 1'
-                },
+                    label: 'Khóa học'
+                },{
+                    key: '31',
+                    label: 'Lịch sử'
+                }
             ]
         },
+        {
+            key: '4',
+            icon: <BarChartOutlined />,
+            label: 'Thống kê',
+            children: [
+                {
+                    key: '40',
+                    label: 'Người dùng'
+                },
+                {
+                    key: '41',
+                    label: 'Doanh thu'
+                }
+            ]
+        }
     ]
     return ( 
         <Flex wrap gap="middle">
@@ -62,6 +86,12 @@ function GiangVienLayout() {
                                 onSelect={({item, key})=>{
                                     if(key === '10'){navigate('/giangvien/CreateGV1');}
                                     if(key === '11'){navigate('/giangvien/listcourse');}
+                                    if(key === '20'){navigate('/giangvien/quanlycourse');}
+                                    if(key === '30'){navigate('/giangvien/khoahoctien');}
+                                    if(key === '31'){navigate('/giangvien/lichsuthanhtoan');}
+                                    if(key === '40'){navigate('/giangvien/thongkenguoidunggv');}
+                                    if(key === '41'){navigate('/giangvien/thongkedoanhthugv');}
+                                   
                                 }}
                                 defaultSelectedKeys={['1']}
                                 defaultOpenKeys={['sub1']}

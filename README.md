@@ -53,3 +53,5 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 ### "source-map-loader": "^5.0.0" tắt báo lỗi cho thư viện này
 
 ## npm install react-player hỗ trợ phát video theo link youtube
+
+# npm install @react-pdf-viewer/core @react-pdf-viewer/default-layout lấy thư viện đọc pdf

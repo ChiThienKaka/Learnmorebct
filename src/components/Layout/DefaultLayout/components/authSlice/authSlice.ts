@@ -3,7 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 //Khởi tạo state
 const initialState : {
     isAuthenticated: boolean,//trạng thái đăng nhập
-    user: {id:string, email: string, role: string} | null,
+    user: {id:string, email: string, role: string, name?:string, avatar?:string} | null,
     role: ''
 } = {
   isAuthenticated: false,//trạng thái đăng nhập

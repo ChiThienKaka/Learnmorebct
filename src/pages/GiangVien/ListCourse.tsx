@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Button, Col, Flex, Form, Input, List, Modal, Row, Tag, Tooltip, Upload, UploadFile } from "antd";
+import { Button, Col, Flex, Form, Input, InputNumber, List, Modal, notification, Row, Tag, Tooltip, Upload, UploadFile } from "antd";
 import { DeleteOutlined, EditOutlined, EyeOutlined, UploadOutlined } from '@ant-design/icons';
 import { API_URL } from '~/constants/constant';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,13 +13,28 @@ function ListCourse() {
     const auth = useSelector(selectAuth);//Lấy giảng viên hiện tại
     const [dataCourse, setDataCourse] = useState<any[]>([]);//data khóa học 
     const [isOpenModalCreateLesson, setIsOpenModalCreateLesson] = useState(false); // Bật tắt Modal
+    const [isOpenModalCreateQuizz, setIsOpenModalCreateQuizz] = useState(false); // Bật form tạo bài kiểm tra
     const [idCourse, setIdCourse] = useState(0);// lưu mã id khi xử lý sự kiện
     const [fileListVideoFile, setFileListVideoFile] = useState<UploadFile[]>([]);//Danh sách file video tải lên
     const [fileListTailieu, setFileListTailieu] = useState<UploadFile[]>([]);//Danh sách file tài liệu tải lên
     const [fileListImage, setFileListImage] = useState<UploadFile[]>([]);//Danh sách file hình ảnh thumbail 
 
+    const [api, contextHolder] = notification.useNotification();//Thông báo thành công
+    //Tạo sự kiện thông báo
+    const openNotification = () => {
+        api.success({
+            message: 'Tạo bài kiểm tra thành công',
+            placement: 'top',
+            duration:2.5
+        })
+    }
+
+
     const [form] = useForm();
+    const [formQuizz] = useForm();
     const navigate = useNavigate();
+
+
     //Check dữ liệu 1 trong 2 form videourl và filevideo phải có
     const checkFormVideoUrlandFilevideo = (_:any, value:any)=>{
         const filevideo = form.getFieldValue('filevideo');
@@ -31,6 +46,8 @@ function ListCourse() {
         // Nếu có ít nhất một trường có giá trị thì không có lỗi
         return Promise.resolve();
     }
+
+
     //lấy dữ liệu từ khóa học từ server
     const getDataCourse = async ()=>{
         try{
@@ -41,42 +58,46 @@ function ListCourse() {
     useEffect(()=>{
         getDataCourse();
     },[])
+
+    // xử lý khi người dùng bắt đầu tạo bài kiểm tra
+    const handleCreateQuizz = async (id: number) => {
+        setIsOpenModalCreateQuizz(true);
+        setIdCourse(id);
+    }
+
+
     // xử lý khi người dùng bắt đầu tạo khóa học
     const handleCreateLesson = (id: number) => {
         setIsOpenModalCreateLesson(true);
         setIdCourse(id);
     }
+
+
+    // Xử lý form tạo bài kiểm tra
+    const onFinishQuizz = async (values: any)=> {
+        try {
+            const res = await axios.post(`${API_URL}quizz/createquizz`, {
+                title: values['title'],
+                description: values['description'],
+                total_marks: values['total_marks'],
+                passing_marks: values['passing_marks'],
+                courseid: idCourse
+            })
+            console.log(res.data);
+            setIsOpenModalCreateQuizz(false);
+            formQuizz.resetFields();
+            openNotification();
+        }catch(e){console.log(e);}
+    }
+
     // Xử lý tạo bài giảng con mới
     const onFinish = async (values:any)=> {
         try{
-            const formData = new FormData();
-            formData.append('lessonid', uuidv4());
-            formData.append('courseid', idCourse.toString());
-            formData.append('title', values['title']);
-            formData.append('content', values['content']);
-            formData.append('videourl', values['videourl']);
-            //lấy file filevideo
-            if(values.filevideo){
-                values.filevideo.fileList.forEach((file:any)=>{
-                    formData.append("filevideo", file.originFileObj)
-                });
-            }
-
-            // lấy file tài liệu
-            if(values.tailieu.fileList){
-                values.tailieu.fileList.forEach((file:any)=>{
-                    formData.append("tailieu", file.originFileObj)
-                });
-            }
-            //Lấy file thumbnail cho hình ảnh thêm sau
-            if(values.image.fileList){
-                values.image.fileList.forEach((file:any)=>{
-                    formData.append("image", file.originFileObj)
-                });
-            }
-
-            await axios.post(`${API_URL}lesson/create`,formData,{
-                headers:{"Content-Type":"multipart/form-data"}
+            await axios.post(`${API_URL}lesson/create`,{
+                courseid: idCourse.toString(), 
+                title: values['title'], 
+                content: values['content'],
+                lessonid: uuidv4()
             })
         
             setIsOpenModalCreateLesson(false)
@@ -86,8 +107,11 @@ function ListCourse() {
             form.resetFields();
         }catch(err){console.log(err)}
     }
+
+
     return (
         <>
+        {contextHolder}
           <div style={{padding:50}}>
               <List pagination={{pageSize: 5, align: 'center'}}
                   // style={{justifyContent: 'center', alignItems: 'center'}}
@@ -96,6 +120,7 @@ function ListCourse() {
                   renderItem={(item:any, index) => (
                   <List.Item actions={[<Flex wrap gap={12}>
                           <Button type="primary" onClick={()=>handleCreateLesson(item.id)} style={{backgroundColor:"#46d36b"}}>Tạo bài giảng</Button>
+                          <Button type="primary" onClick={()=>handleCreateQuizz(item.id)} style={{backgroundColor:"#46d36b"}}>Tạo bài kiểm tra</Button>
                           <Flex wrap gap={3}>
                               <Tooltip title='Xem danh sách bài giảng'><Button onClick={()=>navigate('/giangvien/listlesson', {state: {id: item.id, idGV: item.idGV, thumbnail: item.thumbnail }, replace: true})} shape='circle' icon={<EyeOutlined />}></Button></Tooltip>
                               <Tooltip title='Chỉnh sửa khóa học'><Button shape='circle' icon={<EditOutlined />}></Button></Tooltip>
@@ -111,53 +136,49 @@ function ListCourse() {
               )}/>
           </div>
           {/* Tạo Form Thiết lập bài giảng  */}
-          <Modal title={"Nội dung bài giảng"} footer={null} onCancel={()=>setIsOpenModalCreateLesson(false)} open={isOpenModalCreateLesson}
-            style={{top:64, overflow:'auto', maxHeight:600}} width={700}>
+          <Modal title={"Nội dung bài giảng"} footer={null} onCancel={()=>setIsOpenModalCreateLesson(false)} open={isOpenModalCreateLesson}>
                 {/* <p>id của khóa học vừa chọn là {idCourse}</p> check id của khóa học */}
                 <Form form={form} layout="vertical" onFinish={(values)=>onFinish(values)}>
                      {/* Title */}
                     <Form.Item label="Tiêu đề bài giảng" name="title" rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}>
                       <Input placeholder="Nhập tiêu đề" />
                     </Form.Item>
-                    <Row gutter={12}>
-                        {/* Content */}
-                        <Col span={12}><Form.Item label="Nhập mô tả nội dung bài giảng" name="content" rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}>
+                    {/* Content */}
+                    <Form.Item label="Nhập mô tả nội dung bài giảng" name="content" rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}>
                         <Input.TextArea placeholder="Nhập nội dung" rows={4} />
-                        </Form.Item></Col>
-
-                        {/* Hình ảnh thumbail cho bài giảng */}
-                        <Col span={12}><Form.Item name="image" label="Chọn hình ảnh thumbail cho bài giảng" rules={[{required: true, message: 'Vui lòng chọn thumbail cho bài giảng' }]}>
-                                <Upload showUploadList fileList={fileListImage} accept=".png,.jpg,.jpeg" multiple={false} beforeUpload={()=>false}
-                                maxCount={1} listType="picture-card" onChange={({fileList})=>{setFileListImage(fileList)}}>
-                                    <Button type="text" icon={<UploadOutlined />}></Button>
-                                </Upload>
-                                </Form.Item></Col>
-                    </Row>
-                    {/* Video URL */}
-                    <Form.Item label="Video URL" name="videourl" rules={[{validator: checkFormVideoUrlandFilevideo,}]}>
-                      <Input placeholder="Nhập URL của video" />
                     </Form.Item>
-                    
-                    <Row gutter={12}>
-                        {/* file Video */}
-                        <Col span={12}><Form.Item label="Chọn video của bạn" name="filevideo" 
-                        rules={[{validator: checkFormVideoUrlandFilevideo,}]}>
-                          <Upload maxCount={1} showUploadList fileList={fileListVideoFile} accept="video/*" beforeUpload={()=>false}
-                          listType="text" onChange={({fileList})=>{setFileListVideoFile(fileList)}}>
-                                  <Button type="default" icon={<UploadOutlined />}>Tải video lên</Button>
-                        </Upload></Form.Item></Col>
-
-                        {/* file tài liệu*/}
-                        <Col span={12}><Form.Item label="Chọn các tài liệu của bạn" name="tailieu" rules={[{required: true, message: 'Vui lòng chọn file!' }]}>
-                        <Upload showUploadList fileList={fileListTailieu} accept=".pdf,.doc,.docx" multiple={true} beforeUpload={()=>false}
-                                listType="text" onChange={({fileList})=>{setFileListTailieu(fileList)}}>
-                                <Button type="default" icon={<UploadOutlined />}>Tải tài liệu lên</Button>
-                        </Upload></Form.Item></Col>
-                    </Row>
-                    
                     {/* Submit button */}
-                    <Form.Item style={{display:'flex', justifyContent:"flex-end"}}> <Button style={{backgroundColor:"#47d36b"}} type="primary" htmlType="submit"> Tải bải giảng lên </Button></Form.Item>
+                    <Form.Item style={{display:'flex', justifyContent:"center"}}> <Button style={{backgroundColor:"#47d36b"}} type="primary" htmlType="submit"> Tải bải giảng lên </Button></Form.Item>
                 </Form>
+          </Modal>
+          {/* Form thiết lập bài kiểm tra  */}
+          <Modal title={'Bài kiểm tra kết thúc khóa học'} open={isOpenModalCreateQuizz} onCancel={()=>setIsOpenModalCreateQuizz(false)} footer={null}>
+          <Form form={formQuizz} layout="vertical" onFinish={onFinishQuizz} initialValues={{ total_marks: 10, passing_marks: 5 }}>
+            {/* Title */}
+            <Form.Item label="Tiêu đề" name="title" rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}>
+                <Input placeholder="Tiêu đề bài kiểm tra" />
+            </Form.Item>
+            
+            {/* Description */}
+            <Form.Item label="Mô tả" name="description" rules={[{ required: true, message: 'Vui lòng nhập mô tả!' }]}>
+                <Input.TextArea rows={2} placeholder="Mô tả bài kiểm tra" />
+            </Form.Item>
+
+            {/* Total Marks */}
+            <Form.Item label="Tổng điểm cho bài kiểm tra" name="total_marks" rules={[{ required: true, message: 'Vui lòng nhập tổng điểm!' }]}>
+                <InputNumber min={0} max={1000} placeholder="Tổng điểm cho bài kiểm tra" style={{ width: '100%' }} />
+            </Form.Item>
+
+            {/* Passing Marks */}
+            <Form.Item label="Điểm để qua bài kiểm tra" name="passing_marks" rules={[{ required: true, message: 'Vui lòng nhập điểm để qua!' }]}>
+                <InputNumber min={0} max={1000} placeholder="Điểm để qua bài kiểm tra" style={{ width: '100%' }} />
+            </Form.Item>
+
+            {/* Submit Button */}
+            <Form.Item style={{display:'flex', justifyContent:"center"}}>
+                <Button type="primary" style={{backgroundColor:"#47d46b"}} htmlType="submit">Tải bài kiểm tra lên</Button>
+            </Form.Item>
+            </Form>
           </Modal>
         </>
     );

@@ -11,6 +11,10 @@ import { selectAuth } from "~/redux/selector";
 import Register from "./components/register";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "./components/authSlice/authSlice";
+import { useNavigate } from "react-router-dom";
+import Avatar from "antd/es/avatar/avatar";
+import { API_URL } from "~/constants/constant";
+
 interface Props {
     children: React.ReactNode;
 }
@@ -22,6 +26,12 @@ function DefaultLayout(props:Props) {
     // collapsed cua sidebar 
     const [collapsed, setCollapsed] = useState(false);
     const {children} = props;
+    const navigate = useNavigate();
+    const handleselectmenu = ({key}:any) => {
+        if(key==='1'){
+            navigate('/');
+        }
+    }
     const itemMenu = [
         {
             key:'1',
@@ -31,25 +41,14 @@ function DefaultLayout(props:Props) {
             key:'2',
             icon: <ReadOutlined />,
             label: 'Bài viết'
-        },
-        {
-            key:'3',
-            icon: <ReadOutlined />,
-            label: 'test',
-            children: [
-                {
-                    key: '4',
-                    label: 'Test 1'
-                },
-            ]
-        },
+        }
     ]
     return (
         <Flex wrap gap={5}>
             <Layout>
                 {/* phần header  */}
                 <Header  style={{display:"flex",gap:5,flexWrap:"wrap",justifyContent:"space-between",alignItems:"center", position:"fixed",width:"100%", top:0, 
-                    zIndex:1, backgroundColor:"#ffffff", boxShadow:"0 0 10px rgba(0, 0, 0, 0.2)", padding:"0 20px 0 20px"}}>
+                    zIndex:3, backgroundColor:"#ffffff", boxShadow:"0 0 10px rgba(0, 0, 0, 0.2)", padding:"0 20px 0 20px"}}>
                 
                     <div >
                         <div style={{ display:'flex', alignItems:'center', justifyContent:'center'}}>
@@ -65,9 +64,13 @@ function DefaultLayout(props:Props) {
                     { //Nếu auth null hoặc là role khác với người dùng thì không hiển thị
                         (auth===null || auth.role !=="nguoidung") ? (<Register />) : (<div >
                             <Flex wrap gap={"small"} style={{justifyContent:"center", alignItems:"center"}}>
-                                <Button type="text" onClick={()=>dispatch(logout())}>Khóa học của tôi</Button>
+                                <Button type="text">Khóa học của tôi</Button>
                                 <ModalLogin />
-                                <PopHeader><Button shape="circle" icon={<UserOutlined />} /></PopHeader>
+                                <PopHeader usercurrent={auth}>
+                                    {auth.avatar ? <Avatar src={`${API_URL}auth/getavatarnd/${auth.id}/${auth.avatar}`} />:
+                                    <Avatar icon={<UserOutlined />} />}
+                                    {/* <Button shape="circle" icon={<UserOutlined />} /> */}
+                                </PopHeader>
                             </Flex>
                         </div>)
                     }
@@ -83,13 +86,13 @@ function DefaultLayout(props:Props) {
                                     bottom: 0,
                                     scrollbarWidth: 'thin',
                                     scrollbarColor: 'unset',backgroundColor:"#ffffff"}}>
-                        <Menu items={itemMenu}  defaultSelectedKeys={['1']}
+                        <Menu onClick={handleselectmenu} items={itemMenu}  defaultSelectedKeys={['1']}
                             defaultOpenKeys={['sub1']}
                             mode="inline"
                             theme="light"/>
                     </Sider>
                     {/* phần nội dung */}
-                    <Content style={{marginLeft:collapsed?80:200, marginTop:64,overflow: 'initial',height:"100vh", backgroundColor:"#ffffff",transition:"margin-left 0.3s"}}>
+                    <Content style={{marginLeft:collapsed?80:200, marginTop:64,minHeight:"100vh", backgroundColor:"#ffffff",transition:"margin-left 0.3s"}}>
                             {/* noi dung content */}
                             <>{children}</>
                    </Content>
